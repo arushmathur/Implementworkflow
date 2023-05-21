@@ -1,0 +1,67 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
+    - name: make check
+      run: make check
+    - name: make distcheck
+      run: make distcheck
+      
+  insert-meme:
+  
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Insert random memes on demand
+        run: |
+          # Fetch a random meme image using an API (replace <API_URL> with the actual API URL)
+          MEME_URL=$(curl -s https://memegen.link/)
+
+          # Insert the meme URL into a file (replace <FILE_PATH> with the actual file path)
+          echo $MEME_URL >> memes.jpeg
+
+      - name: Commit Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add memes.jpeg
+          git commit -m "Insert random meme"
+          git push
+
+  collaboration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Add Collaboration Comment for pull request
+        run: |
+          # Get the pull request number from the event payload
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          # Add a collaboration comment to the pull request using the GitHub API
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            -d '{ "body": "Welcome! Feel free to collaborate on this pull request." }'
+
